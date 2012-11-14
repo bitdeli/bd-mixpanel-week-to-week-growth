@@ -65,5 +65,5 @@ Profiles().map(daily_active).map(growth).show()
 
 Title("Average week-to-week growth is currently {growth}", text)
 
-Description("Last week {week-au} active users were recorded. The number {week-growth.verb} by {week-growth} from the week before.",
+Description("Last week {week-au:,} active users were recorded. The number {week-growth.verb} by {week-growth} from the week before.",
             text)
