@@ -1,11 +1,11 @@
 from bitdeli import Profiles, set_theme
 from collections import Counter
 from itertools import chain, groupby
-from datetime import datetime
+from datetime import datetime, timedelta
 
 NUM_WEEKS = 4
 
-set_theme('june')
+set_theme('sail')
 
 def is_active(profile):
     return True
@@ -42,15 +42,17 @@ def week_to_week(daily_stats):
     avg = sum(ratio for week, ratio in growth) / len(growth)
     yield {'type': 'text',
            'label': 'average week-to-week growth over the past %d weeks' % len(growth),
-           'size': (6, 1),
+           'size': (6, 2),
            'color': 2,
            'data': {'head': '%d%%' % (100 * avg)}}
 
 def growth(daily):
     stats = list(sorted(daily))
+    limit = max(stats)[0] - timedelta(days=(NUM_WEEKS + 1) * 7)
     dau = {'type': 'line',
            'label': 'Daily Active Users',
-           'data': [(day.isoformat(), count) for day, count in stats],
+           'data': [(day.isoformat(), count) for day, count in stats\
+                    if day > limit],
            'size': (12, 3)}
     return chain([dau], week_to_week(stats))
 
