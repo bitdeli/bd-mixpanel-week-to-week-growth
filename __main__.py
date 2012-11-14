@@ -1,11 +1,13 @@
-from bitdeli import Profiles, set_theme
+from bitdeli import Profiles, set_theme, Title, Description
+from bitdeli.textutil import Percent
 from collections import Counter
 from itertools import chain, groupby
-from datetime import datetime
+from datetime import datetime, timedelta
 
 NUM_WEEKS = 4
 
-set_theme('june')
+set_theme('sail')
+text = {}
 
 def is_active(profile):
     return True
@@ -30,28 +32,38 @@ def week_to_week(daily_stats):
             it = iter(weekly_stats[-(NUM_WEEKS + 2):-1])
             week, prev = it.next()
             for week, count in it:
-                yield week, float(count - prev) / prev
+                yield week, count, float(count - prev) / prev
                 prev = count
 
     growth = list(weekly_growth(list(weekly_counts())))
-    for week, ratio in growth:
-         yield {'type': 'text',
+    for week, count, ratio in growth:
+        text['week-au'] = count
+        text['week-growth'] = Percent(ratio)
+        yield {'type': 'text',
                 'label': 'week %d' % week,
                 'size': (2, 1),
-                'data': {'text': '%d%%' % (100 * ratio)}}
-    avg = sum(ratio for week, ratio in growth) / len(growth)
+                'data': {'text': '%d%% (%d AU)' % (100 * ratio, count)}}
+    avg = sum(ratio for week, count, ratio in growth) / len(growth)
+    text['growth'] = Percent(avg)
     yield {'type': 'text',
            'label': 'average week-to-week growth over the past %d weeks' % len(growth),
-           'size': (6, 1),
+           'size': (6, 2),
            'color': 2,
            'data': {'head': '%d%%' % (100 * avg)}}
 
 def growth(daily):
     stats = list(sorted(daily))
+    limit = max(stats)[0] - timedelta(days=(NUM_WEEKS + 1) * 7)
     dau = {'type': 'line',
            'label': 'Daily Active Users',
-           'data': [(day.isoformat(), count) for day, count in stats],
+           'data': [(day.isoformat(), count) for day, count in stats\
+                    if day > limit],
            'size': (12, 3)}
     return chain([dau], week_to_week(stats))
 
 Profiles().map(daily_active).map(growth).show()
+
+Title("Average week-to-week growth is currently {growth}", text)
+
+Description("Last week {week-au} active users were recorded. The number {week-growth.verb} by {week-growth} from the week before.",
+            text)
