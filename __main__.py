@@ -30,16 +30,16 @@ def week_to_week(daily_stats):
             it = iter(weekly_stats[-(NUM_WEEKS + 2):-1])
             week, prev = it.next()
             for week, count in it:
-                yield week, float(count - prev) / prev
+                yield week, count, float(count - prev) / prev
                 prev = count
 
     growth = list(weekly_growth(list(weekly_counts())))
-    for week, ratio in growth:
+    for week, count, ratio in growth:
          yield {'type': 'text',
                 'label': 'week %d' % week,
                 'size': (2, 1),
-                'data': {'text': '%d%%' % (100 * ratio)}}
-    avg = sum(ratio for week, ratio in growth) / len(growth)
+                'data': {'text': '%d%% (%d AU)' % (100 * ratio, count)}}
+    avg = sum(ratio for week, count, ratio in growth) / len(growth)
     yield {'type': 'text',
            'label': 'average week-to-week growth over the past %d weeks' % len(growth),
            'size': (6, 2),
